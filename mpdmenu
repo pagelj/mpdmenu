@@ -53,10 +53,8 @@ case "$mode" in
         [[ $artist ]] || exit 1
 
         album=$(d_album "$artist")
-        [[ $album ]] || exit 2
 
-        #mpc clear
-        if [[ $album == "$all_name" ]]; then
+        if [[ $album == "$all_name" || -z $album ]]; then
 	    cat <(mpc find composer "$artist") <(mpc find artist "$artist") | sort | mpc add
         else
 	    cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
