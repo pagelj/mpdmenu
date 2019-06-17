@@ -1,6 +1,7 @@
 #!/bin/bash
 
 all_name='[ALL]'
+clear_name='[CLEAR]'
 mode=library
 
 d_artist_composer() {
@@ -27,7 +28,7 @@ d_playlist() {
     local format="%position%[[ - %title%][ - %album%][ - %composer% | - %artist%]] | [ - %file%]"
     local track
 
-    track=$(mpc playlist -f "$format" | dmenu -p Track: "${dmenu_args[@]}")
+    track=$(cat <(printf '%s\n' "$clear_name") <(mpc playlist -f "$format") | dmenu -p Track: "${dmenu_args[@]}")
     printf '%s' "${track%% *}"
 }
 
@@ -63,6 +64,11 @@ case "$mode" in
         mpc play >/dev/null 2>&1
     ;;
     playlist)
-        mpc play "$(d_playlist)"
+	playlist="$(d_playlist)"
+	if [[ $playlist == "$clear_name" ]]; then
+		mpc clear
+	else
+        	mpc play "$playlist"
+	fi
     ;;
 esac
