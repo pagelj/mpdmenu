@@ -28,7 +28,7 @@ d_playlist() {
     local format="%position%[[ - %title%][ - %album%][ - %composer% | - %artist%]] | [ - %file%]"
     local track
 
-    track=$(cat <(printf '%s\n' "$clear_name") <(mpc playlist -f "$format") | dmenu -p Track: "${dmenu_args[@]}")
+    track=$(cat <(printf '%s\n' "$clear_name") <(mpc playlist -f "$format") | dmenu -p Playlist: "${dmenu_args[@]}")
     printf '%s' "${track%% *}"
 }
 
