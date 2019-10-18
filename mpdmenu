@@ -2,11 +2,12 @@
 
 all_name='[ALL]'
 clear_name='[CLEAR]'
+album_name='[ALBUM]'
 artist_name='[ARTIST/COMPOSER]'
 mode=library
 
 d_library() {
-	track=$(cat <(printf '%s\n' "$all_name") <(printf '%s\n' "$artist_name") <(mpc listall -f "[%composer% - |%artist% - ][%album% - ][%title%]") | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
+	track=$(cat <(printf '%s\n' "$all_name") <(printf '%s\n' "$artist_name") <(printf '%s\n' "$album_name") <(mpc listall -f "[%composer% - |%artist% - ][%album% - ][%title%]") | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
 	if [ -z "$track" ]; then
 		exit 1
 	elif [ $track == "$all_name" ]; then
@@ -22,6 +23,8 @@ d_library() {
         	else
 		    cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
         	fi
+	elif [ $track == "$album_name" ]; then
+		$(d_album)
 	else
 		IFS='-' read -ra track_split <<< "$track"
 		track_composer="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${track_split[0]})"
@@ -29,8 +32,8 @@ d_library() {
 		track_title="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${track_split[2]})"
 		mpc search any "$track_composer" any "$track_album" any "$track_title" | mpc add
 	fi
-        mpc play >/dev/null 2>&1
-
+	playlist_length=$(mpc playlist | wc -l)
+        mpc play $playlist_length >/dev/null 2>&1
 }
 
 d_artist_composer() {
@@ -41,7 +44,7 @@ d_album() {
     local artist="$1"
     local albums
 
-    mapfile -t albums < <(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist"))
+    mapfile -t albums < <(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist") | sed '/^$/d')
     if (( ${#albums[@]} > 1 )) ; then
         {
             printf '%s\n' "$all_name"
