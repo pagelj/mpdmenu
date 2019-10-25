@@ -20,8 +20,7 @@ d_library() {
 			cat <(mpc list artist) <(mpc list composer) | sort -f | mpc add
 		fi	
 		album=$(d_album "$artist")
-		[[ $album ]] || exit 1
-        	if [[ $album == "$all_name" ]]; then
+        	if [[ $album == "$all_name" || -z $album ]]; then
 		    cat <(mpc find composer "$artist") <(mpc find artist "$artist") | sort | mpc add
         	else
 		    cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
@@ -60,7 +59,7 @@ d_album() {
             printf '%s\n' "$all_name"
             printf '%s\n' "${albums[@]}" | sort -f
         } | dmenu -p "$artist Album:" "${dmenu_args[@]}"
-    else
+    elif [[ ${#albums[@]} == 1 ]]; then
         # We only have one album, so just use that.
         printf '%s\n' "${albums[0]}"
     fi
