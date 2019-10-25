@@ -7,6 +7,7 @@ artist_name='[ARTIST/COMPOSER]'
 mode=library
 
 d_library() {
+	playlist_length_init=$(mpc playlist | wc -l)
 	track=$(mpc listall -f "[%composer% > |%artist% > ][%album% > ][%title%]" | sort -f | cat <(printf '%s\n' "$all_name") <(printf '%s\n' "$artist_name") <(printf '%s\n' "$album_name") - | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
 	if [ -z "$track" ]; then
 		exit 1
@@ -40,8 +41,9 @@ d_library() {
 		track_title="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${track_split_3})"
 		mpc search any "$track_composer" any "$track_album" any "$track_title" | mpc add
 	fi
-	playlist_length=$(mpc playlist | wc -l)
-        mpc play $playlist_length >/dev/null 2>&1
+	playlist_length_current=$(mpc playlist | wc -l)
+	number_added_items=$(($playlist_length_current - $playlist_length_init))
+	mpc play $((($playlist_length_current - $number_added_items) + 1)) >/dev/null 2>&1
 }
 
 d_artist_composer() {
