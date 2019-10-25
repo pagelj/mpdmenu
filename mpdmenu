@@ -1,6 +1,6 @@
 #!/bin/bash
 
-all_name='[PLAY ALL]'
+all_name='[PLAY_ALL]'
 clear_name='[CLEAR]'
 album_name='[ALBUMS]'
 artist_name='[ARTISTS/COMPOSERS]'
