@@ -2,8 +2,8 @@
 
 all_name='[PLAY ALL]'
 clear_name='[CLEAR]'
-album_name='[ALBUM]'
-artist_name='[ARTIST/COMPOSER]'
+album_name='[ALBUMS]'
+artist_name='[ARTISTS/COMPOSERS]'
 mode=library
 
 d_library() {

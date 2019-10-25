@@ -7,7 +7,7 @@ Forked from [https://github.com/cdown/mpdmenu](https://github.com/cdown/mpdmenu)
 I added some features that the source does not support but that I wanted to have:
 
 - support to search for either artist or composer, as I have a lot of classical music and organize it with the composer tag
-- by default, `mpdmenu` shows all the tracks in my `mpd` database. I can then search through all tracks using `dmenu` and directly add the found track
+- by default, `mpdmenu` shows all the tracks in my `mpd` database with artist/composer, album and title information. I can then search through all tracks using `dmenu` and directly add the found track
 - filter by artist/composer and/or album with `dmenu` entries, rather than `mpdmenu` command line arguments (like [https://github.com/BenWillemsen/mpdmenu](https://github.com/BenWillemsen/mpdmenu) and forks)
 - control clearing the playlist with a `dmenu` entry
 
