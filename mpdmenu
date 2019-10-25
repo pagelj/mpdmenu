@@ -7,7 +7,7 @@ artist_name='[ARTIST/COMPOSER]'
 mode=library
 
 d_library() {
-	track=$(cat <(printf '%s\n' "$all_name") <(printf '%s\n' "$artist_name") <(printf '%s\n' "$album_name") <(mpc listall -f "[%composer% > |%artist% > ][%album% > ][%title%]") | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
+	track=$(mpc listall -f "[%composer% > |%artist% > ][%album% > ][%title%]" | sort -f | cat <(printf '%s\n' "$all_name") <(printf '%s\n' "$artist_name") <(printf '%s\n' "$album_name") - | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
 	if [ -z "$track" ]; then
 		exit 1
 	elif [ $track == "$all_name" ]; then
@@ -15,7 +15,9 @@ d_library() {
 	elif [ $track == "$artist_name" ]; then
 		artist=$(d_artist_composer)
         	[[ $artist ]] || exit 1
-
+		if [[ $artist == "$all_name" ]]; then
+			mpc listall | mpc add
+		fi
         	album=$(d_album "$artist")
 
         	if [[ $album == "$all_name" || -z $album ]]; then
@@ -37,14 +39,14 @@ d_library() {
 }
 
 d_artist_composer() {
-	cat <(mpc list artist) <(mpc list composer) | sort -f | sed '/^$/d' | dmenu -p Artist/Composer: "${dmenu_args[@]}"
+	cat <(mpc list artist) <(mpc list composer) | sort -f | cat <(printf '%s\n' "$all_name") - | sed '/^$/d' | dmenu -p Artist/Composer: "${dmenu_args[@]}"
 }
 
 d_album() {
     local artist="$1"
     local albums
 
-    mapfile -t albums < <(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist") | sed '/^$/d')
+    mapfile -t albums < <(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist") | sort -f | uniq | sed '/^$/d')
     if (( ${#albums[@]} > 1 )) ; then
         {
             printf '%s\n' "$all_name"
