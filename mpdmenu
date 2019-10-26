@@ -8,7 +8,7 @@ mode=library
 
 d_library() {
 	playlist_length_init=$(mpc playlist | wc -l)
-	track=$(mpc listall -f "[%composer% > |%artist% > ][%album% > ][%title%]" | sort -f | cat <(printf '%s\n' "$all_name") <(printf '%s\n' "$artist_name") <(printf '%s\n' "$album_name") - | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
+	track=$(mpc listall -f "[%artist% > |%composer% > ][%album% > ][%title%]" | sort -f | cat <(printf '%s\n' "$all_name") <(printf '%s\n' "$artist_name") <(printf '%s\n' "$album_name") - | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
 	if [ -z "$track" ]; then
 		exit 1
 	elif [ $track == "$all_name" ]; then
@@ -66,7 +66,7 @@ d_album() {
 }
 
 d_playlist() {
-    local format="%position%[[[ %title%][ - %album%][ - %composer% | - %artist%]] | [ %file%]]"
+    local format="%position%[[[ %title%][ - %album%][ - %artist% | - %composer%]] | [ %file%]]"
     local track
     track=$(cat <(printf '%s\n' "$clear_name") <(mpc playlist -f "$format") | dmenu -p Playlist: "${dmenu_args[@]}")
     playlist=$(printf '%s' "${track%% *}")
