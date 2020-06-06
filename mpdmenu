@@ -14,20 +14,20 @@ d_library() {
 	elif [ $track == "$all_option" ]; then
 		mpc listall | mpc add
 	elif [ $track == "$artist_option" ]; then
-		artist=$(d_artist_composer)
+		artist=$(d_artist_composer || exit 1)
         	[[ $artist ]] || exit 1
 		if [[ $artist == "$all_option" ]]; then
 			cat <(mpc list artist) <(mpc list composer) | sort -f | mpc add
 		fi	
-		album=$(d_album "$artist")
-		[[ $album ]] || exit 1
-        	if [[ $album == "$all_option" || -z $album ]]; then
+		albums=$(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist"))
+		album=$(d_album "$artist" || exit 1)
+        	if [[ $album == "$all_option" || -z $albums ]]; then
 		    cat <(mpc find composer "$artist") <(mpc find artist "$artist") | sort | mpc add
         	else
 		    cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
         	fi
 	elif [ $track == "$album_option" ]; then
-		album=$(d_album)
+		album=$(d_album || exit 1)
 		[[ $album ]] || exit 1
 		if [[ $album == "$all_option" ]]; then
 			mpc list album | mpc add
