@@ -1,35 +1,35 @@
 #!/bin/bash
 
-all_name='[PLAY_ALL]'
-clear_name='[CLEAR]'
-album_name='[ALBUMS]'
-artist_name='[ARTISTS/COMPOSERS]'
+all_option='[PLAY_ALL]'
+clear_option='[CLEAR]'
+album_option='[ALBUMS]'
+artist_option='[ARTISTS/COMPOSERS]'
 mode=library
 
 d_library() {
 	playlist_length_init=$(mpc playlist | wc -l)
-	track=$(mpc listall -f "[%artist% > |%composer% > ][%album% > ][[%track%. ]%title%]" | sort -fV | cat <(printf '%s\n' "$all_name") <(printf '%s\n' "$artist_name") <(printf '%s\n' "$album_name") - | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
+	track=$(mpc listall -f "[%artist% > |%composer% > ][%album% > ][[%track%. ]%title%]" | sort -fV | cat <(printf '%s\n' "$all_option") <(printf '%s\n' "$artist_option") <(printf '%s\n' "$album_option") - | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}")
 	if [ -z "$track" ]; then
 		exit 1
-	elif [ $track == "$all_name" ]; then
+	elif [ $track == "$all_option" ]; then
 		mpc listall | mpc add
-	elif [ $track == "$artist_name" ]; then
+	elif [ $track == "$artist_option" ]; then
 		artist=$(d_artist_composer)
         	[[ $artist ]] || exit 1
-		if [[ $artist == "$all_name" ]]; then
+		if [[ $artist == "$all_option" ]]; then
 			cat <(mpc list artist) <(mpc list composer) | sort -f | mpc add
 		fi	
 		album=$(d_album "$artist")
 		[[ $album ]] || exit 1
-        	if [[ $album == "$all_name" || -z $album ]]; then
+        	if [[ $album == "$all_option" || -z $album ]]; then
 		    cat <(mpc find composer "$artist") <(mpc find artist "$artist") | sort | mpc add
         	else
 		    cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
         	fi
-	elif [ $track == "$album_name" ]; then
+	elif [ $track == "$album_option" ]; then
 		album=$(d_album)
 		[[ $album ]] || exit 1
-		if [[ $album == "$all_name" ]]; then
+		if [[ $album == "$all_option" ]]; then
 			mpc list album | mpc add
 		else
 			mpc find album "$album" | mpc add
@@ -55,7 +55,7 @@ d_library() {
 }
 
 d_artist_composer() {
-	cat <(mpc list artist) <(mpc list composer) | sort -f | cat <(printf '%s\n' "$all_name") - | sed '/^$/d' | dmenu -p Artist/Composer: "${dmenu_args[@]}"
+	cat <(mpc list artist) <(mpc list composer) | sort -f | cat <(printf '%s\n' "$all_option") - | sed '/^$/d' | dmenu -p Artist/Composer: "${dmenu_args[@]}"
 }
 
 d_album() {
@@ -77,7 +77,7 @@ d_album() {
 		fi
 		albumartists+=("$albumartist")
 	done
-	albumartist=$(cat <(printf '%s\n' "$all_name") <(sort -f <(printf '%s\n' "${albumartists[@]}")) | dmenu -p "Album:" "${dmenu_args[@]}")
+	albumartist=$(cat <(printf '%s\n' "$all_option") <(sort -f <(printf '%s\n' "${albumartists[@]}")) | dmenu -p "Album:" "${dmenu_args[@]}")
 	album=$(printf '%s' "${albumartist}" | cut -d '>' -f2 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 	printf '%s\n' "${album}"
     elif [[ ${#albums[@]} == 1 ]]; then
@@ -89,9 +89,9 @@ d_album() {
 d_playlist() {
     local format="\[%position%\][[[[ %track%.] %title%][ > %album%][ > %artist% | > %composer%]] | [ %file%]]"
     local track
-    track=$(cat <(printf '%s\n' "$clear_name") <(mpc playlist -f "$format") | dmenu -p Playlist: "${dmenu_args[@]}")
+    track=$(cat <(printf '%s\n' "$clear_option") <(mpc playlist -f "$format") | dmenu -p Playlist: "${dmenu_args[@]}")
     playlist=$(printf '%s' "${track%% *}" | tr -d '[' | tr -d ']')
-    if [[ $track == "$clear_name" ]]; then
+    if [[ $track == "$clear_option" ]]; then
 	mpc clear
     else
         mpc play "$playlist"
