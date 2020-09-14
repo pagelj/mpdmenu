@@ -11,9 +11,9 @@ d_library() {
 	track=$(mpc listall -f "[%artist% > |%composer% > ][%album% > ][[%track%. ]%title%]" | sort -fV | cat <(printf '%s\n' "$all_option") <(printf '%s\n' "$artist_option") <(printf '%s\n' "$album_option") - | sed '/^$/d' | dmenu -p Music "${dmenu_args[@]}" || exit 1)
 	if [ -z "$track" ]; then
 		exit 1
-	elif [ $track == "$all_option" ]; then
+	elif [ "$track" == "$all_option" ]; then
 		mpc listall | mpc add
-	elif [ $track == "$artist_option" ]; then
+	elif [ "$track" == "$artist_option" ]; then
 		artist=$(d_artist_composer || exit 1)
         	[[ $artist ]] || exit 1
 		if [[ $artist == "$all_option" ]]; then
@@ -26,7 +26,7 @@ d_library() {
         	else
 		    cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
         	fi
-	elif [ $track == "$album_option" ]; then
+	elif [ "$track" == "$album_option" ]; then
 		album=$(d_album || exit 1)
 		[[ $album ]] || exit 1
 		if [[ $album == "$all_option" ]]; then
@@ -40,7 +40,7 @@ d_library() {
 		track_album="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${track_split_2})"
 		track_title_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${track_split_3})"
 		IFS='.' read -r title_num_1 title_num_2 <<< "${track_title_num}"
-		if [ -z $title_num_2 ]; then
+		if [ -z "$title_num_2" ]; then
 			track_title=${track_title_num}
 		else
 			track_title="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${title_num_2})"
@@ -91,7 +91,7 @@ d_playlist() {
     local track
     track=$(cat <(printf '%s\n' "$clear_option") <(mpc playlist -f "$format") | dmenu -p Playlist: "${dmenu_args[@]}" || exit 1)
     playlist=$(printf '%s' "${track%% *}" | tr -d '[' | tr -d ']')
-    if [[ $track == "$clear_option" ]]; then
+    if [[ "$track" == "$clear_option" ]]; then
 	mpc clear
     else
         mpc play "$playlist"
