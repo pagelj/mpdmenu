@@ -15,17 +15,17 @@ d_library() {
 		mpc listall | mpc add
 	elif [ "$track" == "$artist_option" ]; then
 		artist=$(d_artist_composer || exit 1)
-        	[[ $artist ]] || exit 1
+		[[ $artist ]] || exit 1
 		if [[ $artist == "$all_option" ]]; then
 			cat <(mpc list artist) <(mpc list composer) | sort -f | mpc add
-		fi	
+		fi
 		albums=$(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist"))
 		album=$(d_album "$artist" || exit 1)
-        	if [[ $album == "$all_option" || -z $albums ]]; then
-		    cat <(mpc find composer "$artist") <(mpc find artist "$artist") | sort | mpc add
-        	else
-		    cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
-        	fi
+		if [[ $album == "$all_option" || -z $albums ]]; then
+			cat <(mpc find composer "$artist") <(mpc find artist "$artist") | sort | mpc add
+		else
+			cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
+		fi
 	elif [ "$track" == "$album_option" ]; then
 		album=$(d_album || exit 1)
 		[[ $album ]] || exit 1
@@ -36,22 +36,22 @@ d_library() {
 		fi
 	else
 		IFS='>' read -r track_split_1 track_split_2 track_split_3 <<< "$track"
-		track_composer="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${track_split_1})"
-		track_album="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${track_split_2})"
-		track_title_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${track_split_3})"
+		track_composer="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_1}")"
+		track_album="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_2}")"
+		track_title_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_3}")"
 		IFS='.' read -r title_num_1 title_num_2 <<< "${track_title_num}"
 		if [ -z "$title_num_2" ]; then
 			track_title=${track_title_num}
 		else
-			track_title="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${title_num_2})"
-			track_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< ${title_num_1})"
+			track_title="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${title_num_2}")"
+			track_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${title_num_1}")"
 		fi
 		mpc search any "$track_composer" any "$track_album" title "$track_title" track "$track_num" | mpc add || \
 		mpc search any "$track_composer" any "$track_album" title "$track_title" | mpc add
 	fi
 	playlist_length_current=$(mpc playlist | wc -l)
-	number_added_items=$(($playlist_length_current - $playlist_length_init))
-	mpc play $((($playlist_length_current - $number_added_items) + 1)) >/dev/null 2>&1
+	number_added_items=$((playlist_length_current - playlist_length_init))
+	mpc play $(((playlist_length_current - number_added_items) + 1)) >/dev/null 2>&1
 }
 
 d_artist_composer() {
@@ -59,65 +59,65 @@ d_artist_composer() {
 }
 
 d_album() {
-    local artist="$1"
-    local albums
+	local artist="$1"
+	local albums
 
-    mapfile -t albums < <(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist") | sort -f | uniq | sed '/^$/d')
-    if [[ ${#albums[@]} > 1 ]]; then
-	local albumartists
-	for album in "${albums[@]}"; do
-		artcomp=$(mpc list composer album "$album")
-		if [[ -z $artcomp ]]; then
-		       	artcomp=$(mpc list artist album "$album")
-		fi
-		if [[ -z $artcomp ]]; then
-			albumartist="$album"
-		else
-			albumartist=$(paste -d '>' <(echo "$artcomp") <(echo "$album") | sed 's/>/ > /g') 
-		fi
-		albumartists+=("$albumartist")
-	done
-	albumartist=$(cat <(printf '%s\n' "$all_option") <(sort -f <(printf '%s\n' "${albumartists[@]}")) | dmenu -p "Album:" "${dmenu_args[@]}")
-	album=$(printf '%s' "${albumartist}" | cut -d '>' -f2 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-	printf '%s\n' "${album}"
-    elif [[ ${#albums[@]} == 1 ]]; then
-        # We only have one album, so just use that.
-        printf '%s\n' "${albums[0]}"
-    fi
+	mapfile -t albums < <(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist") | sort -f | uniq | sed '/^$/d')
+	if [[ ${#albums[@]} -gt 1 ]]; then
+		local albumartists
+		for album in "${albums[@]}"; do
+			artcomp=$(mpc list composer album "$album")
+			if [[ -z $artcomp ]]; then
+				artcomp=$(mpc list artist album "$album")
+			fi
+			if [[ -z $artcomp ]]; then
+				albumartist="$album"
+			else
+				albumartist=$(paste -d '>' <(echo "$artcomp") <(echo "$album") | sed 's/>/ > /g') 
+			fi
+			albumartists+=("$albumartist")
+		done
+		albumartist=$(cat <(printf '%s\n' "$all_option") <(sort -f <(printf '%s\n' "${albumartists[@]}")) | dmenu -p "Album:" "${dmenu_args[@]}")
+		album=$(printf '%s' "${albumartist}" | cut -d '>' -f2 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+		printf '%s\n' "${album}"
+	elif [[ ${#albums[@]} == 1 ]]; then
+		# We only have one album, so just use that.
+		printf '%s\n' "${albums[0]}"
+	fi
 }
 
 d_playlist() {
-    local format="\[%position%\][[[[ %track%.] %title%][ > %album%][ > %artist% | > %composer%]] | [ %file%]]"
-    local track
-    track=$(cat <(printf '%s\n' "$clear_option") <(mpc playlist -f "$format") | dmenu -p Playlist: "${dmenu_args[@]}" || exit 1)
-    playlist=$(printf '%s' "${track%% *}" | tr -d '[' | tr -d ']')
-    if [[ "$track" == "$clear_option" ]]; then
-	mpc clear
-    else
-        mpc play "$playlist"
-    fi
+	local format="\[%position%\][[[[ %track%.] %title%][ > %album%][ > %artist% | > %composer%]] | [ %file%]]"
+	local track
+	track=$(cat <(printf '%s\n' "$clear_option") <(mpc playlist -f "$format") | dmenu -p Playlist: "${dmenu_args[@]}" || exit 1)
+	playlist=$(printf '%s' "${track%% *}" | tr -d '[' | tr -d ']')
+	if [[ "$track" == "$clear_option" ]]; then
+		mpc clear
+	else
+		mpc play "$playlist"
+	fi
 }
 
 i=2
 for arg do
-    if [[ $arg == :: ]]; then
-        dmenu_args=( "${@:$i}" )
-        break
-    fi
+	if [[ $arg == :: ]]; then
+		dmenu_args=( "${@:$i}" )
+		break
+	fi
 
-    case "$arg" in
-        -l) mode=library ;;
-        -p) mode=playlist ;;
-    esac
+	case "$arg" in
+		-l) mode=library ;;
+		-p) mode=playlist ;;
+	esac
 
-    let i++
+	(( i++ ))
 done
 
 case "$mode" in
-    library)
-	$(d_library)
-    ;;
-    playlist)
-	$(d_playlist)
-    ;;
+	library)
+		d_library
+	;;
+	playlist)
+		d_playlist
+	;;
 esac
