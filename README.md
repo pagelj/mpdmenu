@@ -22,4 +22,4 @@ Pass `mpdmenu` arguments first, followed by any `dmenu` arguments. They are sepa
 ```
 
 `-l` is library mode (default), which descends artists and albums. `-p` is
-playlist mode, which selects a track from the current playlist.
+playlist mode, which selects a track from the current playlist. `-f` enables fzf as the search interface. In this case, arguments following `::` apply to fzf.
