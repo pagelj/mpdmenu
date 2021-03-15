@@ -9,12 +9,12 @@ interface=dmenu
 
 d_library() {
 	playlist_length_init=$(mpc playlist | wc -l)
-	track=$(mpc listall -f "[%artist% > |%composer% > ][%album% > ][[%track%. ]%title%]" | sort -fV | cat <(printf '%s\n' "$all_option") <(printf '%s\n' "$artist_option") <(printf '%s\n' "$album_option") - | sed '/^$/d' | "$interface" "${dmenu_args[@]}" || exit 1)
-	if [ -z "$track" ]; then
+	tracks=$(mpc listall -f "[%artist% > |%composer% > ][%album% > ][[%track%. ]%title%]" | sort -fV | cat <(printf '%s\n' "$all_option") <(printf '%s\n' "$artist_option") <(printf '%s\n' "$album_option") - | sed '/^$/d' | "$interface" "${dmenu_args[@]}" || exit 1)
+	if [ -z "$tracks" ]; then
 		exit 1
-	elif [ "$track" == "$all_option" ]; then
+	elif [ "$tracks" == "$all_option" ]; then
 		mpc listall | mpc add
-	elif [ "$track" == "$artist_option" ]; then
+	elif [ "$tracks" == "$artist_option" ]; then
 		artist=$(d_artist_composer || exit 1)
 		[[ $artist ]] || exit 1
 		if [[ $artist == "$all_option" ]]; then
@@ -27,7 +27,7 @@ d_library() {
 		else
 			cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
 		fi
-	elif [ "$track" == "$album_option" ]; then
+	elif [ "$tracks" == "$album_option" ]; then
 		album=$(d_album || exit 1)
 		[[ $album ]] || exit 1
 		if [[ $album == "$all_option" ]]; then
@@ -36,19 +36,21 @@ d_library() {
 			mpc find album "$album" | mpc add
 		fi
 	else
-		IFS='>' read -r track_split_1 track_split_2 track_split_3 <<< "$track"
-		track_composer="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_1}")"
-		track_album="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_2}")"
-		track_title_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_3}")"
-		IFS='.' read -r title_num_1 title_num_2 <<< "${track_title_num}"
-		if [ -z "$title_num_2" ]; then
-			track_title=${track_title_num}
-		else
-			track_title="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${title_num_2}")"
-			track_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${title_num_1}")"
-		fi
-		mpc search any "$track_composer" any "$track_album" title "$track_title" track "$track_num" | mpc add || \
-		mpc search any "$track_composer" any "$track_album" title "$track_title" | mpc add
+		while IFS= read -r track; do
+			IFS='>' read -r track_split_1 track_split_2 track_split_3 <<< "$track"
+			track_composer="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_1}")"
+			track_album="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_2}")"
+			track_title_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${track_split_3}")"
+			IFS='.' read -r title_num_1 title_num_2 <<< "${track_title_num}"
+			if [ -z "$title_num_2" ]; then
+				track_title=${track_title_num}
+			else
+				track_title="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${title_num_2}")"
+				track_num="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' <<< "${title_num_1}")"
+			fi
+			mpc search any "$track_composer" any "$track_album" title "$track_title" track "$track_num" | mpc add || \
+			mpc search any "$track_composer" any "$track_album" title "$track_title" | mpc add
+		done <<< "$tracks"
 	fi
 	playlist_length_current=$(mpc playlist | wc -l)
 	number_added_items=$((playlist_length_current - playlist_length_init))
