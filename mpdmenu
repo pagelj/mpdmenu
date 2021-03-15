@@ -15,23 +15,27 @@ d_library() {
 	elif [ "$tracks" == "$all_option" ]; then
 		mpc listall | mpc add
 	elif [ "$tracks" == "$artist_option" ]; then
-		artist=$(d_artist_composer || exit 1)
-		[[ $artist ]] || exit 1
-		if [[ $artist == "$all_option" ]]; then
+		artists=$(d_artist_composer || exit 1)
+		[[ $artists ]] || exit 1
+		if [[ $artists == "$all_option" ]]; then
 			cat <(mpc list artist) <(mpc list composer) | sort -f | mpc add
 		fi
-		albums=$(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist"))
-		album=$(d_album "$artist" || exit 1)
-		if [[ $album == "$all_option" || -z $albums ]]; then
-			cat <(mpc find composer "$artist") <(mpc find artist "$artist") | sort | mpc add
-		else
-			cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
-		fi
+		while IFS= read -r artist; do
+			albums_of_artists=$(cat <(mpc list album composer "$artist") <(mpc list album artist "$artist"))
+			albums=$(d_album "$artist" || exit 1)
+			while IFS= read -r album; do
+				if [[ $album == "$all_option" || -z $albums_of_artists ]]; then
+					cat <(mpc find composer "$artist") <(mpc find artist "$artist") | sort | mpc add
+				else
+					cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
+				fi
+			done <<< "$albums"
+		done <<< "$artists"
 	elif [ "$tracks" == "$album_option" ]; then
 		albums=$(d_album || exit 1)
 		[[ $albums ]] || exit 1
 		if [[ $albums == "$all_option" ]]; then
-			mpc list albums | mpc add
+			mpc list album | mpc add
 		else
 			while IFS= read -r album; do
 				mpc find album "$album" | mpc add
