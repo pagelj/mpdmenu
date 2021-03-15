@@ -28,12 +28,14 @@ d_library() {
 			cat <(mpc find composer "$artist" album "$album") <(mpc find artist "$artist" album "$album") | sort | mpc add
 		fi
 	elif [ "$tracks" == "$album_option" ]; then
-		album=$(d_album || exit 1)
-		[[ $album ]] || exit 1
-		if [[ $album == "$all_option" ]]; then
-			mpc list album | mpc add
+		albums=$(d_album || exit 1)
+		[[ $albums ]] || exit 1
+		if [[ $albums == "$all_option" ]]; then
+			mpc list albums | mpc add
 		else
-			mpc find album "$album" | mpc add
+			while IFS= read -r album; do
+				mpc find album "$album" | mpc add
+			done <<< "$albums"
 		fi
 	else
 		while IFS= read -r track; do
